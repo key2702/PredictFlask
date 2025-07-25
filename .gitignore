@@ -1,0 +1,14 @@
+.env
+# Caches Python
+__pycache__/
+*.pyc
+
+# Fichiers sensibles
+*.pkl
+*.db
+*.log
+
+# Dossiers des éditeurs
+.vscode/
+env/
+cache/

@@ -68,9 +68,9 @@ def get_sqlalchemy_engine():
     USER = "ngombe3_SQLLogin_1"
     PASSWORD = "i6azcp949a"
     HOST = "ZonesafeBD.mssql.somee.com"
-    PORT = "1433"  
-    DATABASE = "ZonesafeDB"
-    conn_str = f"mssql+pymssql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
+     
+    DATABASE = "ZonesafeBD"
+    conn_str = f"mssql+pymssql://{USER}:{PASSWORD}@{HOST}/{DATABASE}"
     return create_engine(conn_str)
 
 def fetch_user_infrastructures(user_id):
@@ -91,11 +91,11 @@ def fetch_user_infrastructures(user_id):
         INNER JOIN ESA esa ON osm.id = esa.id_osm  
         INNER JOIN MNT mnt ON osm.id = mnt.id_osm  
     WHERE 
-        osm.id_user = ?  
+        osm.id_user =  %s  
     """
     try:
         with engine.connect() as connection:
-            df = pd.read_sql(query, connection, params=(user_id,))
+            df = pd.read_sql(query, connection, params=( user_id,))
             return df.to_dict('records')
     except Exception as e:
         print(f"Erreur BDD: {str(e)}")
@@ -159,15 +159,18 @@ def predict_user(user_id, user_lat=0.0, user_lng=0.0, user_phone=None):
         except Exception as e:
             print(f"Erreur objet {obj.get('nom_infra')}: {str(e)}")
             continue
-      # 🔔 Envoi WhatsApp si risque détecté
-    if risque_proche and user_phone:
-        msg = f"⚠️ Alerte ! Risque niveau {risque_proche['risque']} détecté à {risque_proche['distance']}m de {risque_proche['type_infra']}."
-        send_whatsapp_alert(user_phone, msg)
-        return [risque_proche], None
+      #  TRI par poids
+    if results:
+        results.sort(key=lambda x: x["poids"], reverse=True)
+        top_infra = results[0]
 
-   
-    if safe_proche:
-        return [safe_proche], None
+        # 🔔 Envoi WhatsApp si risque élevé
+        if top_infra["risque"] in [2, 3] and user_phone:
+            msg = f"⚠️ Alerte ! Risque niveau {top_infra['risque']} détecté à {top_infra['distance']:.1f}m de {top_infra['type_infra']}."
+            send_whatsapp_alert(user_phone, msg)
+
+        return [top_infra], None
+
     return None, "Aucune infrastructure exploitable détectée"
 
 # ========== ENDPOINTS ==========

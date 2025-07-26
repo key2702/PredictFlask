@@ -7,7 +7,7 @@ shapely
 haversine
 geopandas
 flask-cors
-pyodbc
+pymssql
 imblearn
 sqlalchemy
 numpy 

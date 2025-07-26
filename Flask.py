@@ -36,11 +36,6 @@ except Exception as e:
     print(f"Erreur lors du chargement du modèle: {str(e)}")
     model = None
 
-# ========== CONFIG BASE DE DONNEES ==========
-SERVER = 'localhost'
-DATABASE = 'ZonesafeDB'
-DRIVER = 'ODBC Driver 17 for SQL Server'
-
 # ========== TWILIO ==========
 def send_whatsapp_alert(to_number, message_body):
     try:
@@ -70,9 +65,13 @@ def haversine_distance(coord1, coord2):
     return R * c
 
 def get_sqlalchemy_engine():
-    connection_string = f"DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;"
-    params = urllib.parse.quote_plus(connection_string)
-    return create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
+    USER = "ngombe3_SQLLogin_1"
+    PASSWORD = "i6azcp949a"
+    HOST = "ZonesafeBD.mssql.somee.com"
+    PORT = "1433"  
+    DATABASE = "ZonesafeDB"
+    conn_str = f"mssql+pymssql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
+    return create_engine(conn_str)
 
 def fetch_user_infrastructures(user_id):
     engine = get_sqlalchemy_engine()
